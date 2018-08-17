@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    healthcheck:
+      test: ["CMD", "echo 'SELECT version();'| mysql"]
+      timeout: 20s
+      retries: 10
+  web:
+    build: .
+    command: bash -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py loaddata users.json && python3 manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      db
+        condition: service_healthy
+    restart: always
+
